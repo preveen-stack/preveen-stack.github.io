@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Echo Program</title>
+	<style>
+		body {
+			font-family: sans-serif;
+			margin: 0;
+			padding: 0;
+		}
+		header {
+			background-color: #333;
+			color: white;
+			padding: 20px;
+			text-align: center;
+		}
+		h1 {
+			margin: 0;
+			font-size: 28px;
+			font-weight: normal;
+		}
+		main {
+			padding: 20px;
+		}
+		button {
+			background-color: #4CAF50;
+			color: white;
+			border: none;
+			padding: 10px;
+			border-radius: 5px;
+			cursor: pointer;
+			font-size: 16px;
+			display: block;
+			margin: 0 auto;
+			margin-top: 20px;
+			max-width: 200px;
+		}
+		button:hover {
+			background-color: #3e8e41;
+		}
+		.audio {
+			display: none;
+		}
+	</style>
+	<script>
+		let mediaRecorder;
+		let recordedChunks = [];
+		let isRecording = false;
+
+		function startRecording() {
+			navigator.mediaDevices.getUserMedia({ audio: true })
+				.then(function(stream) {
+					mediaRecorder = new MediaRecorder(stream);
+					mediaRecorder.start();
+					isRecording = true;
+
+					const micButton = document.getElementById("mic-button");
+					micButton.textContent = "Recording...";
+
+					mediaRecorder.addEventListener("dataavailable", function(event) {
+						recordedChunks.push(event.data);
+					});
+
+					mediaRecorder.addEventListener("stop", function() {
+						isRecording = false;
+
+						const micButton = document.getElementById("mic-button");
+						micButton.textContent = "Press and hold to record";
+
+						const audioElement = document.getElementById("audio");
+						const recordedBlob = new Blob(recordedChunks);
+						recordedChunks = [];
+
+						audioElement.src = URL.createObjectURL(recordedBlob);
+						audioElement.style.display = "block";
+					});
+
+					setTimeout(function() {
+						if (isRecording) {
+							mediaRecorder.stop();
+						}
+					}, 60000);
+				})
+				.catch(function(error) {
+					console.error(error);
+				});
+		}
+
+		function stopRecording() {
+			if (isRecording) {
+				mediaRecorder.stop();
+			}
+		}
+	</script>
+</head>
+<body>
+	<header>
+		<h1>Echo Program</h1>
+	</header>
+	<main>
+		<button id="mic-button" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">Press and hold to record</button>
+		<audio id="audio" controls class="audio"></audio>
+	</main>
+</body>
+</html>
