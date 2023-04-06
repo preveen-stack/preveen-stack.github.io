@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Plotly.js Example</title>
+  <!-- Load Plotly.js -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+  <div id="plot"></div>
+
+  <script>
+    // Define data
+    var xData = [1, 2, 3, 4, 5];
+    var yData = [10, 8, 6, 4, 2];
+
+    var trace1 = {
+      x: xData,
+      y: yData,
+      type: 'scatter'
+    };
+
+    var data = [trace1];
+
+    // Define layout
+    var layout = {
+      title: 'Line Chart Example',
+      xaxis: {
+        title: 'X Axis'
+      },
+      yaxis: {
+        title: 'Y Axis'
+      }
+    };
+
+    // Create plot
+    Plotly.newPlot('plot', data, layout);
+  </script>
+</body>
+</html>
