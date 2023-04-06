@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JSON Validation</title>
+    <script>
+        function validateJson() {
+            // Get the input text from the text area
+            var inputText = document.getElementById('inputText').value;
+
+            try {
+                // Attempt to parse the input text as JSON
+                var parsedJson = JSON.parse(inputText);
+
+                // If parsing is successful, display a success message
+                alert('JSON is valid!');
+            } catch (error) {
+                // If parsing fails, display an error message
+                alert('Error: ' + error.message);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>JSON Validation</h1>
+    <textarea id="inputText" rows="10" cols="50"></textarea>
+    <br>
+    <button onclick="validateJson()">Validate</button>
+</body>
+</html>
