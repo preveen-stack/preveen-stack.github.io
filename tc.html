@@ -4,17 +4,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tile String Calculator</title>
+    <title>Tile Power Calculator</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         label { display: block; margin-top: 10px; }
         input { margin-top: 5px; }
         button { margin-top: 10px; }
         .result { margin-top: 20px; font-weight: bold; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
 <body>
-    <h1>Tile String Calculator</h1>
+    <h1>Tile Power Calculator</h1>
     <form id="calculatorForm">
         <label for="tileType">Select Tile Type:</label>
         <select name="tileType" id="tileType" required>
@@ -60,12 +73,28 @@
             const totalAreaM2 = areaM2 * numberOfTiles; // Total area in square meters
             const totalAreaFT2 = totalAreaM2 * 10.7639; // Convert to square feet
 
-            document.getElementById('result').innerHTML =
-                `Total Voc for ${numberOfTiles} tile(s): ${totalVoc.toFixed(2)} Volts<br>` +
-                `Total Power for ${numberOfTiles} tile(s): ${totalPower.toFixed(2)} Watts<br>` +
-                `Total Area for ${numberOfTiles} tile(s): ` +
-                `${totalAreaM2.toFixed(2)} m² (square meters) or ` +
-                `${totalAreaFT2.toFixed(2)} ft² (square feet)`;
+            // Create a table to display results
+            const resultTable = `
+                <table>
+                    <tr>
+                        <th>Description</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>Total Voc for ${numberOfTiles} tile(s)</td>
+                        <td>${totalVoc.toFixed(2)} Volts</td>
+                    </tr>
+                    <tr>
+                        <td>Total Power for ${numberOfTiles} tile(s)</td>
+                        <td>${totalPower.toFixed(2)} Watts</td>
+                    </tr>
+                    <tr>
+                        <td>Total Area for ${numberOfTiles} tile(s)</td>
+                        <td>${totalAreaM2.toFixed(2)} m² (square meters) or ${totalAreaFT2.toFixed(2)} ft² (square feet)</td>
+                    </tr>
+                </table>`;
+            
+            document.getElementById('result').innerHTML = resultTable;
         });
     </script>
 </body>
