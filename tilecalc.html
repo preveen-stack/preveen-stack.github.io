@@ -1,0 +1,73 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tile Power Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        label { display: block; margin-top: 10px; }
+        input { margin-top: 5px; }
+        button { margin-top: 10px; }
+        .result { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Tile Power Calculator</h1>
+    <form id="calculatorForm">
+        <label for="tileType">Select Tile Type:</label>
+        <select name="tileType" id="tileType" required>
+            <option value="77W">77W Tile</option>
+            <option value="90W">90W Tile</option>
+        </select>
+
+        <label for="numberOfTiles">Number of Tiles:</label>
+        <input type="number" name="numberOfTiles" id="numberOfTiles" required min="1">
+
+        <button type="submit">Calculate</button>
+    </form>
+
+    <div class="result" id="result"></div>
+
+    <script>
+        document.getElementById('calculatorForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+
+            const tileType = document.getElementById('tileType').value;
+            const numberOfTiles = parseInt(document.getElementById('numberOfTiles').value, 10);
+
+            let voc = 0;
+            let power = 0;
+            let areaM2 = 0;
+
+            if (tileType === '77W') {
+                voc = 11.56; // Voc for 77W tile
+                power = 77; // Power for 77W tile
+                const widthM = 1120 / 1000; // Convert mm to meters
+                const heightM = 465 / 1000; // Convert mm to meters
+                areaM2 = widthM * heightM; // Area in square meters
+            } else if (tileType === '90W') {
+                voc = 8.91; // Voc for 90W tile
+                power = 90; // Power for 90W tile
+                const widthM = 1265 / 1000; // Convert mm to meters
+                const heightM = 465 / 1000; // Convert mm to meters
+                areaM2 = widthM * heightM; // Area in square meters
+            }
+
+            const totalVoc = voc * numberOfTiles;
+            const totalPower = power * numberOfTiles;
+            const totalAreaM2 = areaM2 * numberOfTiles; // Total area in square meters
+            const totalAreaFT2 = totalAreaM2 * 10.7639; // Convert to square feet
+
+            document.getElementById('result').innerHTML =
+                `Total Voc for ${numberOfTiles} tile(s): ${totalVoc.toFixed(2)} Volts<br>` +
+                `Total Power for ${numberOfTiles} tile(s): ${totalPower.toFixed(2)} Watts<br>` +
+                `Total Area for ${numberOfTiles} tile(s): ` +
+                `${totalAreaM2.toFixed(2)} m² (square meters) or ` +
+                `${totalAreaFT2.toFixed(2)} ft² (square feet)`;
+        });
+    </script>
+</body>
+</html>
+
