@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editable Shape with Tile Calculation and Drawing</title>
+    <style>
+        body { margin: 0; background-color: #f0f0f0; } /* Light background */
+        canvas { display: block; }
+        #tileCount {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            font-size: 18px;
+            color: black;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div id="tileCount">Tiles: 0</div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/DragControls.js"></script>
+
+    <script>
+        // Setup the scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Change background to light color
+        renderer.setClearColor(0xf0f0f0); // Light background color
+
+        // Add grid helper (light theme) - Grid size: 1cm = 1m
+        const gridHelper = new THREE.GridHelper(100, 100, 0xaaaaaa, 0xdddddd); // Lighter grid colors
+        gridHelper.scale.set(0.01, 0.01, 0.01); // Scale grid so each square is 1m x 1m
+        scene.add(gridHelper);
+
+        // Create a group to hold the vertices (5 vertexes, 6 sides)
+        const vertices = [];
+        const lines = [];
+        const labels = [];
+        let tiles = [];
+
+        // Tile properties
+        const tileWidth = 1.2; // meters
+        const tileHeight = 0.9; // meters
+
+        // Vertices (Initial Positions in meters)
+        const points = [
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(3, 0, 0),
+            new THREE.Vector3(4, 2, 0),
+            new THREE.Vector3(1.5, 3, 0),
+            new THREE.Vector3(0, 2, 0)
+        ];
+
+        // Create geometry, material for lines
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x333333 }); // Dark line color for contrast
+
+        // Create and add vertices and lines
+        for (let i = 0; i < points.length; i++) {
+            // Create vertex spheres
+            const sphereGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+            const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            sphere.position.copy(points[i]);
+            scene.add(sphere);
+            vertices.push(sphere);
+
+            // Create line segments between vertices
+            const geometry = new THREE.BufferGeometry().setFromPoints([points[i], points[(i + 1) % points.length]]);
+            const line = new THREE.Line(geometry, lineMaterial);
+            scene.add(line);
+            lines.push(line);
+
+            // Create label for length
+            const div = document.createElement('div');
+            div.style.position = 'absolute';
+            div.style.color = '#333'; // Dark text for labels
+            div.style.fontFamily = 'Arial, sans-serif';
+            div.style.fontSize = '14px';
+            div.innerHTML = '0 m';
+            document.body.appendChild(div);
+            labels.push(div);
+        }
+
+        // Lighting
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(5, 10, 7);
+        scene.add(light);
+
+        // Add drag controls for vertices
+        const controls = new THREE.DragControls(vertices, camera, renderer.domElement);
+
+        controls.addEventListener('drag', function () {
+            updateLinesAndLabels();
+            calculateTiles();
+        });
+
+        // Update line positions and labels
+        function updateLinesAndLabels() {
+            for (let i = 0; i < points.length; i++) {
+                points[i].copy(vertices[i].position);
+                lines[i].geometry.setFromPoints([points[i], points[(i + 1) % points.length]]);
+
+                // Calculate distance between two points
+                const dist = points[i].distanceTo(points[(i + 1) % points.length]);
+                const measurement = dist.toFixed(2); // 1cm = 1m
+                labels[i].innerHTML = measurement + ' m';
+
+                // Position the labels in the middle of each side
+                const midpoint = points[i].clone().lerp(points[(i + 1) % points.length], 0.5);
+                const vector = midpoint.project(camera);
+                labels[i].style.left = ((vector.x + 1) / 2 * window.innerWidth) + 'px';
+                labels[i].style.top = (-(vector.y - 1) / 2 * window.innerHeight) + 'px';
+            }
+        }
+
+        // Calculate area of the shape
+        function calculateArea() {
+            let area = 0;
+            const numPoints = points.length;
+            for (let i = 0; i < numPoints; i++) {
+                const j = (i + 1) % numPoints;
+                area += points[i].x * points[j].y - points[j].x * points[i].y;
+            }
+            return Math.abs(area / 2); // Area in square meters
+        }
+
+        // Check if a point is inside the polygon (using ray-casting algorithm)
+        function isPointInPolygon(point) {
+            let crossings = 0;
+            for (let i = 0; i < points.length; i++) {
+                const a = points[i];
+                const b = points[(i + 1) % points.length];
+                if (((a.y > point.y) !== (b.y > point.y)) &&
+                    (point.x < (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x)) {
+                    crossings++;
+                }
+            }
+            return (crossings % 2 === 1);
+        }
+
+        // Draw the tiles within the shape with visible borders
+        function drawTiles() {
+            // Clear existing tiles
+            for (const tile of tiles) {
+                scene.remove(tile);
+            }
+            tiles = [];
+
+            const boundingBox = new THREE.Box3().setFromPoints(points);
+            const min = boundingBox.min;
+            const max = boundingBox.max;
+
+            let tileCount = 0;
+            for (let x = min.x; x + tileWidth <= max.x; x += tileWidth) {
+                for (let y = min.y; y + tileHeight <= max.y; y += tileHeight) {
+                    const tileCenter = new THREE.Vector3(x + tileWidth / 2, y + tileHeight / 2, 0);
+                    if (isPointInPolygon(tileCenter)) {
+                        // Create the tile (visible plane)
+                        const tileGeometry = new THREE.PlaneGeometry(tileWidth, tileHeight);
+                        const tileMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide, opacity: 0.5, transparent: true });
+                        const tileMesh = new THREE.Mesh(tileGeometry, tileMaterial);
+                        tileMesh.position.set(x + tileWidth / 2, y + tileHeight / 2, 0);
+                        scene.add(tileMesh);
+
+                        // Create the border for the tile (wireframe)
+                        const tileWireframe = new THREE.LineSegments(
+                            new THREE.EdgesGeometry(tileGeometry),
+                            new THREE.LineBasicMaterial({ color: 0x000000 }) // Black border for the tile
+                        );
+                        tileWireframe.position.copy(tileMesh.position);
+                        scene.add(tileWireframe);
+
+                        tiles.push(tileMesh);
+                        tiles.push(tileWireframe);
+                        tileCount++;
+                    }
+                }
+            }
+
+            document.getElementById('tileCount').innerHTML = 'Tiles: ' + tileCount;
+        }
+
+        // Calculate number of 1.2m x 0.9m tiles that fit inside the shape and draw them
+        function calculateTiles() {
+            drawTiles(); // Draw tiles within the shape
+        }
+
+        // Camera positioning
+        camera.position.z = 10;
+
+        // Animate the scene
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+            updateLinesAndLabels();
+        }
+        animate();
+
+        // Initial tile calculation
+        calculateTiles();
+    </script>
+</body>
+</html>
+
