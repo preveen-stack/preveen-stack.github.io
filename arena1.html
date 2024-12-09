@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editable Shape with Measurements (Light Theme)</title>
+    <style>
+        body { margin: 0; background-color: #f0f0f0; } /* Light background */
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/DragControls.js"></script>
+
+    <script>
+        // Setup the scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Change background to light color
+        renderer.setClearColor(0xf0f0f0); // Light background color
+
+        // Add grid helper (light theme)
+        const gridHelper = new THREE.GridHelper(100, 100, 0xaaaaaa, 0xdddddd); // Lighter grid colors
+        scene.add(gridHelper);
+
+        // Create a group to hold the vertices (5 vertexes, 6 sides)
+        const vertices = [];
+        const lines = [];
+        const labels = [];
+
+        // Vertices (Initial Positions)
+        const points = [
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(3, 0, 0),
+            new THREE.Vector3(4, 2, 0),
+            new THREE.Vector3(1.5, 3, 0),
+            new THREE.Vector3(0, 2, 0)
+        ];
+
+        // Create geometry, material for lines
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x333333 }); // Dark line color for contrast
+
+        // Create and add vertices and lines
+        for (let i = 0; i < points.length; i++) {
+            // Create vertex spheres
+            const sphereGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+            const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            sphere.position.copy(points[i]);
+            scene.add(sphere);
+            vertices.push(sphere);
+
+            // Create line segments between vertices
+            const geometry = new THREE.BufferGeometry().setFromPoints([points[i], points[(i + 1) % points.length]]);
+            const line = new THREE.Line(geometry, lineMaterial);
+            scene.add(line);
+            lines.push(line);
+
+            // Create label for length
+            const div = document.createElement('div');
+            div.style.position = 'absolute';
+            div.style.color = '#333'; // Dark text for labels
+            div.style.fontFamily = 'Arial, sans-serif';
+            div.style.fontSize = '14px';
+            div.innerHTML = '0 m';
+            document.body.appendChild(div);
+            labels.push(div);
+        }
+
+        // Lighting
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(5, 10, 7);
+        scene.add(light);
+
+        // Add drag controls for vertices
+        const controls = new THREE.DragControls(vertices, camera, renderer.domElement);
+
+        controls.addEventListener('drag', function () {
+            updateLinesAndLabels();
+        });
+
+        // Update line positions and labels
+        function updateLinesAndLabels() {
+            for (let i = 0; i < points.length; i++) {
+                points[i].copy(vertices[i].position);
+                lines[i].geometry.setFromPoints([points[i], points[(i + 1) % points.length]]);
+
+                // Calculate distance between two points
+                const dist = points[i].distanceTo(points[(i + 1) % points.length]);
+                const measurement = (dist * 100).toFixed(2); // Centimeters to Meters
+                labels[i].innerHTML = measurement + ' m';
+
+                // Position the labels in the middle of each side
+                const midpoint = points[i].clone().lerp(points[(i + 1) % points.length], 0.5);
+                const vector = midpoint.project(camera);
+                labels[i].style.left = ((vector.x + 1) / 2 * window.innerWidth) + 'px';
+                labels[i].style.top = (-(vector.y - 1) / 2 * window.innerHeight) + 'px';
+            }
+        }
+
+        // Camera positioning
+        camera.position.z = 10;
+
+        // Animate the scene
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+            updateLinesAndLabels();
+        }
+        animate();
+    </script>
+</body>
+</html>
+

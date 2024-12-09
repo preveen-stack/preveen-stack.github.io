@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Shape with Tile Calculation and Edge Dimensions</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #canvasContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            display: block;
+        }
+        #tileCount {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            font-size: 18px;
+            color: black;
+            border: 1px solid #ccc;
+        }
+        @media (max-width: 768px) {
+            #tileCount {
+                font-size: 14px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvasContainer">
+        <canvas id="canvas"></canvas>
+        <div id="tileCount">Tiles: 0</div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const tileCountDiv = document.getElementById('tileCount');
+
+        // Resize canvas to fit window
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            drawShapeAndTiles();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // Shape vertices (initially a pentagon)
+        let vertices = [
+            { x: 100, y: 100 },
+            { x: 300, y: 100 },
+            { x: 350, y: 250 },
+            { x: 200, y: 350 },
+            { x: 50, y: 250 }
+        ];
+
+        // Tile dimensions in meters (1cm = 1m)
+        const tileWidth = 120;  // 1.2m in cm
+        const tileHeight = 90;  // 0.9m in cm
+
+        let draggingVertex = null;
+
+        // Draw shape, tiles, and edge dimensions
+        function drawShapeAndTiles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the shape and dimensions
+            ctx.beginPath();
+            ctx.moveTo(vertices[0].x, vertices[0].y);
+            for (let i = 1; i < vertices.length; i++) {
+                ctx.lineTo(vertices[i].x, vertices[i].y);
+                drawEdgeDimension(vertices[i - 1], vertices[i]);
+            }
+            ctx.lineTo(vertices[0].x, vertices[0].y); // Close the shape
+            drawEdgeDimension(vertices[vertices.length - 1], vertices[0]);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw and count tiles
+            const boundingBox = getBoundingBox(vertices);
+            let tileCount = 0;
+            for (let x = boundingBox.minX; x + tileWidth <= boundingBox.maxX; x += tileWidth) {
+                for (let y = boundingBox.minY; y + tileHeight <= boundingBox.maxY; y += tileHeight) {
+                    const tileCorners = [
+                        { x: x, y: y },
+                        { x: x + tileWidth, y: y },
+                        { x: x + tileWidth, y: y + tileHeight },
+                        { x: x, y: y + tileHeight }
+                    ];
+
+                    if (isTileInsidePolygon(tileCorners, vertices)) {
+                        // Draw the tile
+                        ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+                        ctx.fillRect(x, y, tileWidth, tileHeight);
+                        ctx.strokeStyle = '#000';
+                        ctx.strokeRect(x, y, tileWidth, tileHeight);
+
+                        tileCount++;
+                    }
+                }
+            }
+
+            // Update tile count display
+            tileCountDiv.innerHTML = 'Tiles: ' + tileCount;
+
+            // Draw vertices as draggable points
+            for (let vertex of vertices) {
+                ctx.beginPath();
+                ctx.arc(vertex.x, vertex.y, 8, 0, Math.PI * 2);
+                ctx.fillStyle = '#ff0000';
+                ctx.fill();
+                ctx.stroke();
+            }
+        }
+
+        // Draw edge dimensions
+        function drawEdgeDimension(start, end) {
+            const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)) / 100; // Convert cm to meters
+            const midX = (start.x + end.x) / 2;
+            const midY = (start.y + end.y) / 2;
+
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#000';
+            ctx.fillText(distance.toFixed(2) + ' m', midX, midY);
+        }
+
+        // Bounding box of the polygon
+        function getBoundingBox(vertices) {
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            for (let vertex of vertices) {
+                if (vertex.x < minX) minX = vertex.x;
+                if (vertex.x > maxX) maxX = vertex.x;
+                if (vertex.y < minY) minY = vertex.y;
+                if (vertex.y > maxY) maxY = vertex.y;
+            }
+            return { minX, minY, maxX, maxY };
+        }
+
+        // Check if all corners of a tile are inside the polygon
+        function isTileInsidePolygon(tileCorners, polygon) {
+            for (let corner of tileCorners) {
+                if (!isPointInPolygon(corner, polygon)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Ray-casting algorithm to check if a point is inside the polygon
+        function isPointInPolygon(point, polygon) {
+            let crossings = 0;
+            for (let i = 0; i < polygon.length; i++) {
+                const a = polygon[i];
+                const b = polygon[(i + 1) % polygon.length];
+                if (((a.y > point.y) !== (b.y > point.y)) &&
+                    (point.x < (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x)) {
+                    crossings++;
+                }
+            }
+            return crossings % 2 !== 0;
+        }
+
+        // Handle mouse and touch events for dragging vertices
+        canvas.addEventListener('mousedown', onPointerDown);
+        canvas.addEventListener('touchstart', onPointerDown);
+        canvas.addEventListener('mousemove', onPointerMove);
+        canvas.addEventListener('touchmove', onPointerMove);
+        canvas.addEventListener('mouseup', onPointerUp);
+        canvas.addEventListener('touchend', onPointerUp);
+
+        function onPointerDown(event) {
+            const pointer = getPointerPosition(event);
+            for (let vertex of vertices) {
+                const dist = Math.sqrt((pointer.x - vertex.x) ** 2 + (pointer.y - vertex.y) ** 2);
+                if (dist < 10) {
+                    draggingVertex = vertex;
+                    break;
+                }
+            }
+        }
+
+        function onPointerMove(event) {
+            if (draggingVertex) {
+                const pointer = getPointerPosition(event);
+                draggingVertex.x = pointer.x;
+                draggingVertex.y = pointer.y;
+                drawShapeAndTiles();
+            }
+        }
+
+        function onPointerUp() {
+            draggingVertex = null;
+        }
+
+        function getPointerPosition(event) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX = event.clientX || event.touches[0].clientX;
+            let clientY = event.clientY || event.touches[0].clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        // Initial draw
+        resizeCanvas();
+    </script>
+</body>
+</html>
+

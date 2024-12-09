@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #qrcode {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>QR Code Generator</h1>
+    <p>Enter a URL below to generate its QR code:</p>
+    <input type="text" id="urlInput" placeholder="Enter URL here" />
+    <button onclick="generateQRCode()">Generate QR Code</button>
+    <div id="qrcode"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <script>
+        function generateQRCode() {
+            const url = document.getElementById('urlInput').value.trim(); // Trim whitespace
+            const qrCodeContainer = document.getElementById('qrcode');
+
+            // Clear any existing QR code
+            qrCodeContainer.innerHTML = '';
+
+            if (url) {
+                // Validate URL format
+                try {
+                    new URL(url); // Throws an error if the URL is invalid
+
+                    // Create a new <canvas> element
+                    const canvas = document.createElement('canvas');
+                    qrCodeContainer.appendChild(canvas);
+
+                    // Generate QR code
+                    QRCode.toCanvas(canvas, url, function (error) {
+                        if (error) {
+                            console.error(error);
+                            alert('Error generating QR code: ' + error.message);
+                        }
+                    });
+                } catch (e) {
+                    alert('Please enter a valid URL, e.g., https://example.com');
+                }
+            } else {
+                alert('Please enter a URL.');
+            }
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackbody Radiation Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        label, button {
+            font-size: 16px;
+            margin: 10px 0;
+            display: block;
+        }
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            background-color: #e3f2fd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Blackbody Radiation Calculator</h1>
+        
+        <label for="diameter">Diameter of Ball (cm):</label>
+        <input type="number" id="diameter" value="10" required>
+        
+        <label for="temperature">Temperature (K):</label>
+        <input type="number" id="temperature" value="1100" required>
+        
+        <label for="wavelength">Wavelength (μm):</label>
+        <input type="number" id="wavelength" value="3" step="0.01" required>
+        
+        <button onclick="calculateRadiation()">Calculate</button>
+        
+        <div class="result" id="results">
+            <h3>Results:</h3>
+            <p><strong>Total Blackbody Emissive Power (W/m²):</strong> <span id="totalEmissivePower">-</span></p>
+            <p><strong>Total Radiation Emitted in 10 minutes (J):</strong> <span id="totalRadiation">-</span></p>
+            <p><strong>Spectral Emissive Power at 3μm (W/m³):</strong> <span id="spectralEmissivePower">-</span></p>
+        </div>
+    </div>
+
+    <script>
+        const sigma = 5.67 * Math.pow(10, -8); // Stefan-Boltzmann constant in W/m²K⁴
+
+        function calculateRadiation() {
+            // Get input values
+            const diameter = parseFloat(document.getElementById('diameter').value) / 100; // Convert to meters
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            const wavelength = parseFloat(document.getElementById('wavelength').value) * 1e-6; // Convert to meters
+
+            // (1) Total Blackbody Emissive Power
+            const totalEmissivePower = sigma * Math.pow(temperature, 4);
+            document.getElementById('totalEmissivePower').textContent = totalEmissivePower.toFixed(2);
+
+            // (2) Total Radiation Emitted in 10 minutes
+            const radius = diameter / 2;
+            const surfaceArea = 4 * Math.PI * Math.pow(radius, 2); // Surface area of the sphere
+            const totalRadiation = totalEmissivePower * surfaceArea * 600; // 600 seconds = 10 minutes
+            document.getElementById('totalRadiation').textContent = totalRadiation.toFixed(2);
+
+            // (3) Spectral Emissive Power at 3μm (Planck's Law)
+            const h = 6.626 * Math.pow(10, -34); // Planck's constant in J·s
+            const c = 3 * Math.pow(10, 8); // Speed of light in m/s
+            const kB = 1.381 * Math.pow(10, -23); // Boltzmann constant in J/K
+
+            const exponent = (h * c) / (wavelength * kB * temperature);
+            const spectralEmissivePower = (2 * Math.PI * h * Math.pow(c, 2)) / Math.pow(wavelength, 5) *
+                (1 / (Math.exp(exponent) - 1));
+
+            document.getElementById('spectralEmissivePower').textContent = spectralEmissivePower.toExponential(2);
+        }
+    </script>
+</body>
+</html>
+
