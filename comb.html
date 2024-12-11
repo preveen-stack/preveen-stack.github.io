@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Series and Parallel Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .output {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Series and Parallel Calculator</h1>
+
+    <label for="values">Enter values (comma separated):</label>
+    <input type="text" id="values" placeholder="e.g., 10k, 20M, 30">
+
+    <h2>Resistors</h2>
+    <button onclick="calculateResistors('series')">Calculate Series</button>
+    <button onclick="calculateResistors('parallel')">Calculate Parallel</button>
+
+    <h2>Capacitors</h2>
+    <button onclick="calculateCapacitors('series')">Calculate Series</button>
+    <button onclick="calculateCapacitors('parallel')">Calculate Parallel</button>
+
+    <div class="output" id="output"></div>
+  </div>
+
+  <script>
+    function calculateResistors(type) {
+      const values = parseInput();
+      if (!values) return;
+      let result;
+      if (type === 'series') {
+        result = values.reduce((acc, val) => acc + val, 0);
+      } else {
+        result = 1 / values.reduce((acc, val) => acc + 1 / val, 0);
+      }
+      displayResult(`Total Resistance (${type}): ${result.toFixed(2)} Ω`);
+    }
+
+    function calculateCapacitors(type) {
+      const values = parseInput();
+      if (!values) return;
+      let result;
+      if (type === 'series') {
+        result = 1 / values.reduce((acc, val) => acc + 1 / val, 0);
+      } else {
+        result = values.reduce((acc, val) => acc + val, 0);
+      }
+      displayResult(`Total Capacitance (${type}): ${result.toFixed(2)} µF`);
+    }
+
+    function parseInput() {
+      const input = document.getElementById('values').value;
+      if (!input) {
+        alert('Please enter some values.');
+        return null;
+      }
+      const values = input.split(',').map(val => {
+        val = val.trim();
+        const multiplier = val.endsWith('k') ? 1e3 : val.endsWith('M') ? 1e6 : val.endsWith('µ') ? 1e-6 : 1;
+        const numericValue = parseFloat(val.replace(/[kMµ]/g, ''));
+        return isNaN(numericValue) ? NaN : numericValue * multiplier;
+      });
+      if (values.some(isNaN)) {
+        alert('Please enter valid numbers with optional units (e.g., k, M, µ).');
+        return null;
+      }
+      return values;
+    }
+
+    function displayResult(message) {
+      document.getElementById('output').textContent = message;
+    }
+  </script>
+</body>
+</html>
+
