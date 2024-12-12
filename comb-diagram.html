@@ -43,7 +43,7 @@
 
     <div class="output" id="output"></div>
     <div class="diagram">
-      <canvas id="circuitDiagram" width="500" height="200"></canvas>
+      <canvas id="circuitDiagram" width="800" height="400"></canvas>
     </div>
   </div>
 
@@ -103,8 +103,10 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const startX = 50;
-      const startY = 100;
-      const spacing = 100;
+      const startY = 200;
+      const spacing = 120;
+      const componentWidth = componentType === 'resistor' ? 100 : 60;
+      const componentHeight = componentType === 'resistor' ? 20 : 40;
       let x = startX;
 
       ctx.strokeStyle = '#000';
@@ -118,10 +120,16 @@
           ctx.lineTo(x + spacing / 2, startY);
           ctx.stroke();
 
+          // Draw component
+          ctx.fillStyle = '#ccc';
+          ctx.fillRect(x + spacing / 2 - componentWidth / 2, startY - componentHeight / 2, componentWidth, componentHeight);
+          ctx.strokeRect(x + spacing / 2 - componentWidth / 2, startY - componentHeight / 2, componentWidth, componentHeight);
+
+          // Label
           if (componentType === 'resistor') {
-            ctx.fillText(`R${index + 1} (${value} Ω)`, x + spacing / 4 - 20, startY - 10);
+            ctx.fillText(`R${index + 1} (${value} Ω)`, x + spacing / 2 - 40, startY - componentHeight);
           } else {
-            ctx.fillText(`C${index + 1} (${value} µF)`, x + spacing / 4 - 20, startY - 10);
+            ctx.fillText(`C${index + 1} (${value} µF)`, x + spacing / 2 - 40, startY - componentHeight);
           }
 
           ctx.beginPath();
@@ -134,15 +142,21 @@
         values.forEach((value, index) => {
           ctx.beginPath();
           ctx.moveTo(startX, startY);
-          ctx.lineTo(startX, startY - (index + 1) * 40);
-          ctx.lineTo(startX + spacing, startY - (index + 1) * 40);
+          ctx.lineTo(startX, startY - (index + 1) * 60);
+          ctx.lineTo(startX + spacing, startY - (index + 1) * 60);
           ctx.lineTo(startX + spacing, startY);
           ctx.stroke();
 
+          // Draw component
+          ctx.fillStyle = '#ccc';
+          ctx.fillRect(startX + spacing / 2 - componentWidth / 2, startY - (index + 1) * 60 - componentHeight / 2, componentWidth, componentHeight);
+          ctx.strokeRect(startX + spacing / 2 - componentWidth / 2, startY - (index + 1) * 60 - componentHeight / 2, componentWidth, componentHeight);
+
+          // Label
           if (componentType === 'resistor') {
-            ctx.fillText(`R${index + 1} (${value} Ω)`, startX + spacing / 2 - 20, startY - (index + 1) * 40 - 10);
+            ctx.fillText(`R${index + 1} (${value} Ω)`, startX + spacing / 2 - 40, startY - (index + 1) * 60 - componentHeight);
           } else {
-            ctx.fillText(`C${index + 1} (${value} µF)`, startX + spacing / 2 - 20, startY - (index + 1) * 40 - 10);
+            ctx.fillText(`C${index + 1} (${value} µF)`, startX + spacing / 2 - 40, startY - (index + 1) * 60 - componentHeight);
           }
         });
       }
