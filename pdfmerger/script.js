@@ -1,6 +1,7 @@
 const fileInput = document.getElementById('file-input');
 const fileList = document.getElementById('file-list');
 const mergeBtn = document.getElementById('merge-btn');
+const outputFilenameInput = document.getElementById('output-filename');
 
 let files = [];
 
@@ -58,11 +59,14 @@ mergeBtn.addEventListener('click', async () => {
 
   const mergedPdfBytes = await pdfDoc.save();
 
+  // Get the file name from the input
+  const outputFilename = outputFilenameInput.value.trim() || 'merged.pdf';
+
   // Trigger download
   const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = 'merged.pdf';
+  link.download = outputFilename.endsWith('.pdf') ? outputFilename : `${outputFilename}.pdf`;
   link.click();
 });
 
