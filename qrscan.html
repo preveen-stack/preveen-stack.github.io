@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Reader with Preview</title>
-    <!-- CDN for html5-qrcode -->
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
     <style>
         #qr-video {
@@ -20,10 +19,10 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 250px;
-            height: 250px;
-            margin-left: -125px;
-            margin-top: -125px;
+            width: 300px;
+            height: 300px;
+            margin-left: -150px;
+            margin-top: -150px;
             z-index: 1;
         }
     </style>
@@ -48,10 +47,14 @@
             const qrCodeScanner = new Html5Qrcode("qr-video");
 
             qrCodeScanner.start(
-                { facingMode: "environment" }, // Use the environment camera (rear-facing)
                 {
-                    fps: 10, // Frame rate
-                    qrbox: 250 // Size of the QR box for scanning
+                    facingMode: "environment",  // Use the environment camera
+                    width: 1280,  // Camera resolution
+                    height: 720
+                },
+                {
+                    fps: 20,  // Set a slightly higher frame rate
+                    qrbox: 300  // Increase size of scanning box
                 },
                 (decodedText, decodedResult) => {
                     qrResultDiv.innerHTML = `<p>Decoded Text: ${decodedText}</p>`;
