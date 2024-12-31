@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Merger</title>
+  <style>
+    #file-list { list-style: none; padding: 0; margin: 1rem 0; }
+    #file-list li { padding: 0.5rem; border: 1px solid #ccc; margin-bottom: 0.5rem; cursor: grab; }
+  </style>
+</head>
+<body>
+  <h1>Merge PDFs</h1>
+  <input type="file" id="file-input" accept="application/pdf" multiple />
+  <ul id="file-list"></ul>
+  <button id="merge-btn">Merge PDFs</button>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
+
