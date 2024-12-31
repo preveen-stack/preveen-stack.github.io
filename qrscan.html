@@ -3,23 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Reader</title>
-    <!-- Updated CDN link for html5-qrcode -->
+    <title>QR Code Reader with Preview</title>
+    <!-- CDN for html5-qrcode -->
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <style>
+        #qr-video {
+            width: 100%;
+            height: auto;
+            border: 1px solid black;
+        }
+        #qr-result {
+            margin-top: 10px;
+        }
+        #qr-box {
+            border: 2px dashed red;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 250px;
+            height: 250px;
+            margin-left: -125px;
+            margin-top: -125px;
+            z-index: 1;
+        }
+    </style>
 </head>
 <body>
-    <h2>QR Code Scanner</h2>
+    <h2>QR Code Scanner with Preview</h2>
     <div>
         <button id="startScan">Start Scanning</button>
     </div>
-    <div>
-        <video id="qr-video" width="300" height="300"></video>
+    <div style="position: relative;">
+        <video id="qr-video"></video>
+        <div id="qr-box"></div>
         <div id="qr-result"></div>
     </div>
 
     <script>
         const startScanButton = document.getElementById('startScan');
         const qrResultDiv = document.getElementById('qr-result');
+        const qrBoxDiv = document.getElementById('qr-box');
 
         startScanButton.addEventListener('click', () => {
             const qrCodeScanner = new Html5Qrcode("qr-video");
