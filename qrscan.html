@@ -46,16 +46,20 @@
         startScanButton.addEventListener('click', () => {
             const qrCodeScanner = new Html5Qrcode("qr-video");
 
+            const cameraConfig = {
+                facingMode: "environment",  // Use the environment camera (rear-facing)
+                width: { ideal: 1280 },  // Camera resolution width
+                height: { ideal: 720 }   // Camera resolution height
+            };
+
+            const scanConfig = {
+                fps: 20,  // Set a slightly higher frame rate
+                qrbox: 300  // Size of scanning box
+            };
+
             qrCodeScanner.start(
-                {
-                    facingMode: "environment",  // Use the environment camera
-                    width: 1280,  // Camera resolution
-                    height: 720
-                },
-                {
-                    fps: 20,  // Set a slightly higher frame rate
-                    qrbox: 300  // Increase size of scanning box
-                },
+                cameraConfig, // Pass the camera configuration object
+                scanConfig,   // Pass the scan settings object
                 (decodedText, decodedResult) => {
                     qrResultDiv.innerHTML = `<p>Decoded Text: ${decodedText}</p>`;
                     qrCodeScanner.stop(); // Stop scanning once a QR code is detected
