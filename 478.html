@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Custom Timer with Beep</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    #counter {
+      font-size: 48px;
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+  <h1>Custom Sequence Timer with Beep</h1>
+  <div id="counter">Ready</div>
+
+  <script>
+    const sequences = [[1, 4], [1, 7], [1, 8]];
+    let cycleCount = 0;
+    const maxCycles = 4;
+    let currentSequence = 0;
+    let currentNumber = 1;
+
+    const counterElement = document.getElementById('counter');
+
+    function beep() {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(800, ctx.currentTime); // Beep tone
+      gainNode.gain.setValueAtTime(0.2, ctx.currentTime); // Volume
+
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      oscillator.start();
+      oscillator.stop(ctx.currentTime + 0.15); // Beep duration
+    }
+
+    function runTimer() {
+      if (cycleCount >= maxCycles) {
+        counterElement.textContent = "Done!";
+        return;
+      }
+
+      const [start, end] = sequences[currentSequence];
+      counterElement.textContent = currentNumber;
+      beep();
+
+      if (currentNumber < end) {
+        currentNumber++;
+      } else {
+        currentSequence++;
+        currentNumber = 1;
+
+        if (currentSequence >= sequences.length) {
+          currentSequence = 0;
+          cycleCount++;
+        }
+      }
+
+      if (cycleCount < maxCycles) {
+        setTimeout(runTimer, 1000);
+      }
+    }
+
+    // Start the timer
+    setTimeout(runTimer, 1000);
+  </script>
+</body>
+</html>
